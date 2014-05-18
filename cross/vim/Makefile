@@ -6,7 +6,7 @@ PKG_DIST_NAME = $(PKG_NAME)-$(PKG_VERS).$(PKG_EXT)
 PKG_DIST_SITE = ftp://ftp.vim.org/pub/vim/unix/
 PKG_DIR = $(PKG_NAME)$(PKG_VERS_CUT)
 
-DEPENDS = cross/ncurses
+DEPENDS = 
 
 HOMEPAGE = http://www.vim.org/
 COMMENT  = Vim is an advanced text editor that seeks to provide the power of the de-facto Unix editor Vi, with a more complete feature set.
