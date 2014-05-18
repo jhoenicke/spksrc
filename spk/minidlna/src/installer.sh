@@ -8,22 +8,13 @@ DNAME="miniDLNA"
 INSTALL_DIR="/usr/local/${PACKAGE}"
 SSS="/var/packages/${PACKAGE}/scripts/start-stop-status"
 PATH="${INSTALL_DIR}/bin:${PATH}"
-USER="transmission"
+USER="minidlna"
 GROUP="users"
-CFG_FILE="${INSTALL_DIR}/var/settings.json"
+CFG_FILE="${INSTALL_DIR}/etc/minidlna.conf"
 TMP_DIR="${SYNOPKG_PKGDEST}/../../@tmp"
-
-SERVICETOOL="/usr/syno/bin/servicetool"
-FWPORTS="/var/packages/${PACKAGE}/scripts/${PACKAGE}.sc"
 
 preinst ()
 {
-    if [ "${SYNOPKG_PKG_STATUS}" == "INSTALL" ]; then
-        if [ ! -d "${wizard_download_dir}" ]; then
-            echo "Download folder ${wizard_download_dir} does not exist."
-            exit 1
-        fi
-    fi
     exit 0
 }
 
@@ -31,45 +22,27 @@ postinst ()
 {
     # Link
     ln -s ${SYNOPKG_PKGDEST} ${INSTALL_DIR}
+    mkdir -p ${SYNOPKG_PKGDEST}/var
+    mkdir -p ${SYNOPKG_PKGDEST}/var/log
+    mkdir -p ${SYNOPKG_PKGDEST}/var/cache
+    mkdir -p ${SYNOPKG_PKGDEST}/var/pid
 
     # Create user
-    adduser -h ${INSTALL_DIR}/var -g "${DNAME} User" -G ${GROUP} -s /bin/sh -S -D ${USER}
+    synouser --add ${USER} `openssl rand 27 -base64 2>/dev/null` "${DNAME} User" 1 "" 0
 
     if [ "${SYNOPKG_PKG_STATUS}" == "INSTALL" ]; then
+	cat ${CFG_FILE}.in > ${CFG_FILE}
+
         # Edit the configuration according to the wizard
-        sed -i -e "s|@download_dir@|${wizard_download_dir:=/volume1/downloads}|g" ${CFG_FILE}
-        sed -i -e "s|@username@|${wizard_username:=admin}|g" ${CFG_FILE}
-        sed -i -e "s|@password@|${wizard_password:=admin}|g" ${CFG_FILE}
-        if [ -d "${wizard_watch_dir}" ]; then
-            sed -i -e "s|@watch_dir_enabled@|true|g" ${CFG_FILE}
-            sed -i -e "s|@watch_dir@|${wizard_watch_dir}|g" ${CFG_FILE}
-        else
-            sed -i -e "s|@watch_dir_enabled@|false|g" ${CFG_FILE}
-            sed -i -e "/@watch_dir@/d" ${CFG_FILE}
-        fi
-        # Set group and permissions on download- and watch dir for DSM5
-        if [ `/bin/get_key_value /etc.defaults/VERSION buildnumber` -ge "4418" ]; then
-            chgrp users ${wizard_download_dir:=/volume1/downloads}
-            chmod g+rw ${wizard_download_dir:=/volume1/downloads}
-            if [ -d "${wizard_watch_dir}" ]; then
-                chgrp users ${wizard_watch_dir}
-                chmod g+rw ${wizard_watch_dir}
-            fi
-        fi
-    fi
-    if [ -d "${wizard_incomplete_dir}" ]; then
-        sed -i -e "s|@incomplete_dir_enabled@|true|g" ${CFG_FILE}
-        sed -i -e "s|@incomplete_dir@|${wizard_incomplete_dir}|g" ${CFG_FILE}
-    else
-        sed -i -e "s|@incomplete_dir_enabled@|false|g" ${CFG_FILE}
-        sed -i -e "/@incomplete_dir@/d" ${CFG_FILE}
+#        sed -i -e "s|@download_dir@|${wizard_download_dir:=/volume1/downloads}|g" ${CFG_FILE}
+#        sed -i -e "s|@username@|${wizard_username:=admin}|g" ${CFG_FILE}
+#        sed -i -e "s|@password@|${wizard_password:=admin}|g" ${CFG_FILE}
+	HOSTNAME=`hostname`
+	echo "friendly_name=MiniDLNA [${HOSTNAME}]" >>${CFG_FILE}
     fi
 
     # Correct the files ownership
     chown -R ${USER}:root ${SYNOPKG_PKGDEST}
-
-    # Add firewall config
-    ${SERVICETOOL} --install-configure-file --package ${FWPORTS} >> /dev/null
 
     exit 0
 }
@@ -81,13 +54,7 @@ preuninst ()
 
     # Remove the user (if not upgrading)
     if [ "${SYNOPKG_PKG_STATUS}" != "UPGRADE" ]; then
-        delgroup ${USER} ${GROUP}
-        deluser ${USER}
-    fi
-
-    # Remove firewall config
-    if [ "${SYNOPKG_PKG_STATUS}" == "UNINSTALL" ]; then
-        ${SERVICETOOL} --remove-configure-file --package ${PACKAGE}.sc >> /dev/null
+        synouser --del ${USER}
     fi
 
     exit 0
