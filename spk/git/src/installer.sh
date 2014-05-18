@@ -15,11 +15,10 @@ preinst ()
 
 postinst ()
 {
-    # Link
+    # Links
     ln -s ${SYNOPKG_PKGDEST} ${INSTALL_DIR}
-
-    # Install busybox stuff
-    ${INSTALL_DIR}/bin/busybox --install ${INSTALL_DIR}/bin
+    mkdir -p /usr/local/bin
+    ln -s ${INSTALL_DIR}/bin/git /usr/local/bin/git
 
     exit 0
 }
@@ -31,8 +30,9 @@ preuninst ()
 
 postuninst ()
 {
-    # Remove link
+    # Remove links
     rm -f ${INSTALL_DIR}
+    rm -f /usr/local/bin/git
 
     exit 0
 }
