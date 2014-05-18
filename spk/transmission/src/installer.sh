@@ -32,11 +32,8 @@ postinst ()
     # Link
     ln -s ${SYNOPKG_PKGDEST} ${INSTALL_DIR}
 
-    # Install busybox stuff
-    ${INSTALL_DIR}/bin/busybox --install ${INSTALL_DIR}/bin
-
     # Create user
-    adduser -h ${INSTALL_DIR}/var -g "${DNAME} User" -G ${GROUP} -s /bin/sh -S -D ${USER}
+    synouser --add ${USER} `openssl rand 27 -base64 2>/dev/null` "${DNAME} User" 1 "" 0
 
     if [ "${SYNOPKG_PKG_STATUS}" == "INSTALL" ]; then
         # Edit the configuration according to the wizard
@@ -84,8 +81,7 @@ preuninst ()
 
     # Remove the user (if not upgrading)
     if [ "${SYNOPKG_PKG_STATUS}" != "UPGRADE" ]; then
-        delgroup ${USER} ${GROUP}
-        deluser ${USER}
+        synouser --del ${USER}
     fi
 
     # Remove firewall config

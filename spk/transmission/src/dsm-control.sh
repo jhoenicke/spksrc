@@ -14,7 +14,7 @@ PID_FILE="${INSTALL_DIR}/var/transmission.pid"
 
 start_daemon ()
 {
-    su - ${USER} -c "${TRANSMISSION} -g ${INSTALL_DIR}/var/ -x ${PID_FILE}"
+    su - ${USER} -s /bin/sh -c "${TRANSMISSION} -g ${INSTALL_DIR}/var/ -x ${PID_FILE}"
 }
 
 stop_daemon ()
