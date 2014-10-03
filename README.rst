@@ -2,6 +2,10 @@ spksrc
 ======
 spksrc is a cross compilation framework intended to compile and package softwares for Synology NAS
 
+Repository of jhoenicke
+-----------------------
+This is the spksrc fork of jhoenicke.  Note that not everything compiles as expeced.  Use the original spksrc if you have any problems.
+
 Requirements
 ------------
 To use spksrc, it is recommended to use a virtual machine with an x86, 32-bit version of Debian stable OS installed. Non-x86 architectures or 64-bit architectures are not supported.
